@@ -1,8 +1,8 @@
 package com.jettian.pojocheck.ascept;
 
+import com.jettian.pojocheck.annotation.PojoMatch;
 import com.jettian.pojocheck.checkintf.PojoCheckIntf;
 import com.jettian.pojocheck.config.PojoCheckConfig;
-import com.jettian.pojocheck.annotation.PojoMatch;
 import com.jettian.pojocheck.exception.PojoWrongException;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -15,7 +15,8 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.regex.Matcher;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -27,7 +28,7 @@ import java.util.regex.Pattern;
  */
 @Aspect
 @Component
-public class PojoCheckAscept {
+public class PojoCheckAspect {
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -41,7 +42,7 @@ public class PojoCheckAscept {
         if(null!=objects)
         {
             for(Object o : objects){
-                if(o.getClass().getName().startsWith(applicationContext.getBean(PojoCheckConfig.class).getScanPackage())){
+                if(matches(applicationContext.getBean(PojoCheckConfig.class).getScanPackage(),o.getClass().getName())){
                     Field [] fields = o.getClass().getDeclaredFields();
                     for(Field field :fields)
                     {
@@ -70,9 +71,7 @@ public class PojoCheckAscept {
                                 }
                                 if(!"".equals(re) && null!=value)
                                 {
-                                    Pattern pattern = Pattern.compile(re);
-                                    Matcher matcher = pattern.matcher(value.toString());
-                                    if(!matcher.matches())
+                                    if(!Pattern.matches(re,value.toString()))
                                     {
                                         throw new PojoWrongException(("字符"+field.getName()+"内容与正则要求不匹配"));
                                     }
@@ -103,4 +102,26 @@ public class PojoCheckAscept {
         else
             return (new StringBuilder()).append(Character.toUpperCase(s.charAt(0))).append(s.substring(1)).toString();
     }
+
+    public  boolean matches(String target,String packageName){
+        int startIndex = 0,endIndex = 0;
+        List<String> matchStrs = new ArrayList();
+        char []value = (target+"*").toCharArray();
+        for(int i=0;i<value.length-1;i++){
+            if("*".equals(String.valueOf(value[i]))){
+                startIndex = i+1;
+            }else{
+                if("*".equals(String.valueOf(value[i+1]))){
+                    endIndex = i;
+                    matchStrs.add(target.substring(startIndex,endIndex));
+                }
+            }
+        }
+        for (String str : matchStrs){
+            if(!packageName.contains(str))
+                return false;
+        }
+        return true;
+    }
+
 }
