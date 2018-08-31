@@ -19,7 +19,7 @@ import java.lang.annotation.Target;
 public @interface PojoMatch {
 
     //校验此作用字段长度
-    int value();
+    int value() default -1;
 
     //校验字段是否能为空,默认为允许
     boolean cannull() default true;

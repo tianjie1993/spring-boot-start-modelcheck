@@ -58,7 +58,7 @@ public class PojoCheckAscept {
                                 Object value = method1.invoke(o);
                                 if(null!=value && value.getClass()==String.class)
                                 {
-                                    if((String.valueOf(value).length()>length))
+                                    if(-1!=length && (String.valueOf(value).length()>length))
                                     {
                                         throw new PojoWrongException("字符"+field.getName()+"长度超长");
                                     }
@@ -82,7 +82,7 @@ public class PojoCheckAscept {
                                    String result =  ((PojoCheckIntf)checkclz.newInstance()).check(value.toString());
                                    if(null!=result && !"".equals(result))
                                    {
-                                       throw new PojoWrongException(("字符"+field.getName()+"内容与不符合校验，校验类："+checkclz.getName()));
+                                       throw new PojoWrongException(("字符"+field.getName()+"内容不符合校验，校验类："+checkclz.getName()));
 
                                    }
                                 }
